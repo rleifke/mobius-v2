@@ -1,11 +1,13 @@
 # Mobius V2
 
-A Time Weighted Automated Market Maker (TWAMM) implementation for Uniswap V3 on Celo. Allowing users on Celo to split their large orders over several blocks. 
+A Time Weighted Automated Market Maker (TWAMM) implementation for Uniswap V3 on Celo forked from FrankieIsLost. Allowing users on Celo to split their large orders over several blocks. 
 
 
 ### Useful links:
 
 https://www.paradigm.xyz/2021/07/twamm/ 
+
+https://github.com/FrankieIsLost/TWAMM
 
 
 
