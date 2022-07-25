@@ -1,11 +1,12 @@
 //SPDX-License-Identifier: Unlicense
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.4;
 
-///@notice An Order Pool is an abstraction for a pool of long term orders that sells a token at a constant rate to the embedded AMM. 
-///the order pool handles the logic for distributing the proceeds from these sales to the owners of the long term orders through a modified 
-///version of the staking algorithm from  https://uploads-ssl.webflow.com/5ad71ffeb79acc67c8bcdaba/5ad8d1193a40977462982470_scalable-reward-distribution-paper.pdf
+///@notice An Order Pool is an abstraction for a pool of long term orders that sells 
+//a token at a constant rate to the Uniswap amm 
+///the order pool handles the logic for distributing the proceeds from 
+// these sales to the owners of the long term orders through a modified 
+///version of the staking algorithm from scalable reward distribution paper
 library OrderPoolLib {
-    using PRBMathUD60x18 for uint256;
 
     ///@notice you can think of this as a staking pool where all long term orders are staked.
     /// The pool is paid when virtual long term orders are executed, and each order is paid proportionally 
@@ -14,7 +15,8 @@ library OrderPoolLib {
         ///@notice current rate that tokens are being sold (per block)
         uint256 currentSalesRate;
 
-        ///@notice sum of (salesProceeds_k / salesRate_k) over every period k. Stored as a fixed precision floating point number   
+        ///@notice sum of (salesProceeds_k / salesRate_k) over every period k. 
+        //Stored as a fixed precision floating point number   
         uint256 rewardFactor;
 
         ///@notice this maps block numbers to the cumulative sales rate of orders that expire on that block
@@ -37,12 +39,16 @@ library OrderPoolLib {
     function distributePayment(OrderPool storage self, uint256 amount) internal {
         if(self.currentSalesRate != 0) {
             //floating point arithmetic 
+            // TODO: Fix 
             self.rewardFactor += amount.fromUint().div(self.currentSalesRate.fromUint());
         }
     }
 
     ///@notice deposit an order into the order pool. 
-    function depositOrder(OrderPool storage self, uint256 orderId, uint256 amountPerBlock, uint256 orderExpiry) internal {
+    function depositOrder(OrderPool storage self, 
+                                uint256 orderId, 
+                                uint256 amountPerBlock, 
+                                uint256 orderExpiry) internal {
         self.currentSalesRate += amountPerBlock;
         self.rewardFactorAtSubmission[orderId] = self.rewardFactor;
         self.orderExpiry[orderId] = orderExpiry;
@@ -58,9 +64,10 @@ library OrderPoolLib {
     }
 
     ///@notice cancel order and remove from the order pool
-    function cancelOrder(OrderPool storage self, uint256 orderId) internal returns (uint256 unsoldAmount, uint256 purchasedAmount) {
+    function cancelOrder(OrderPool storage self, uint256 orderId) 
+        internal returns (uint256 unsoldAmount, uint256 purchasedAmount) {
         uint256 expiry = self.orderExpiry[orderId];
-        require(expiry > block.number, 'order already finished');
+        require(expiry > block.number, "order already finished");
 
         //calculate amount that wasn't sold, and needs to be returned 
         uint256 salesRate = self.salesRate[orderId];
@@ -83,7 +90,7 @@ library OrderPoolLib {
     //use current reward factor, and update the reward factor at time of staking (effectively creating a new order)
     function withdrawProceeds(OrderPool storage self, uint256 orderId) internal returns (uint256 totalReward) {
         uint256 stakedAmount = self.salesRate[orderId];
-        require(stakedAmount > 0, 'sales rate amount must be positive');
+        require(stakedAmount > 0, "sales rate amount must be positive");
         uint256 orderExpiry = self.orderExpiry[orderId];
         uint256 rewardFactorAtSubmission = self.rewardFactorAtSubmission[orderId];
 
