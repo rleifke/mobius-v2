@@ -1,8 +1,6 @@
 //SPDX-License-Identifier: Unlicense
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.4;
 
-import "@rari-capital/solmate/src/utils/SafeTransferLib.sol";
-import "@rari-capital/solmate/src/utils/ReentrancyGuard.sol";
 import "./libraries/LongTermOrders.sol";
 
 ///@title Mobius V2 
@@ -82,7 +80,7 @@ contract TWAMM is ITWAMM, ReentrancyGuard {
 
     ///@notice provide initial liquidity to the amm. This sets the relative price between tokens
     function provideInitialLiquidity(uint256 amount0, uint256 amount1) external nonReentrant {
-        require(totalSupply == 0, 'liquidity has already been provided, need to call provideLiquidity');
+        require(totalSupply == 0, "liquidity has already been provided, need to call provideLiquidity");
 
         reserveMap[token0] = amount0;
         reserveMap[token1] = amount1;
@@ -100,12 +98,13 @@ contract TWAMM is ITWAMM, ReentrancyGuard {
     ///@notice provide liquidity to the AMM 
     ///@param lpTokenAmount number of lp tokens to mint with new liquidity  
     function provideLiquidity(uint256 lpTokenAmount) external nonReentrant {
-        require(totalSupply != 0, 'no liquidity has been provided yet, need to call provideInitialLiquidity');
+        require(totalSupply != 0, "no liquidity has been provided yet, need to call provideInitialLiquidity");
 
         //execute virtual orders 
         longTermOrders.executeVirtualOrdersUntilCurrentBlock(reserveMap);
 
-        //the ratio between the number of underlying tokens and the number of lp tokens must remain invariant after mint 
+        //the ratio between the number of underlying tokens and the number of lp tokens
+        //must remain invariant after mint 
         uint256 amount0In = lpTokenAmount * reserveMap[token0] / totalSupply;
         uint256 amount1In = lpTokenAmount * reserveMap[token1] / totalSupply;
 
@@ -123,7 +122,7 @@ contract TWAMM is ITWAMM, ReentrancyGuard {
     ///@notice remove liquidity to the AMM 
     ///@param lpTokenAmount number of lp tokens to burn
     function removeLiquidity(uint256 lpTokenAmount) external nonReentrant {
-        require(lpTokenAmount <= totalSupply, 'not enough lp tokens available');
+        require(lpTokenAmount <= totalSupply, "not enough lp tokens available");
 
         //execute virtual orders 
         longTermOrders.executeVirtualOrdersUntilCurrentBlock(reserveMap);
@@ -185,8 +184,10 @@ contract TWAMM is ITWAMM, ReentrancyGuard {
     }
 
     ///@notice private function which implements swap logic 
-    function performV3Swap(address operator, address recipient, uint256 amountIn) private returns (uint256 amountOutMinusFee) {
-        require(amountIn > 0, 'swap amount must be positive');
+    function performV3Swap(address operator, 
+                            address recipient, 
+                            uint256 amountIn) private returns (uint256 amountOutMinusFee) {
+        require(amountIn > 0, "swap amount must be positive");
 
         //execute virtual orders 
         longTermOrders.executeVirtualOrdersUntilCurrentBlock(reserveMap);

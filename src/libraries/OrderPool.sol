@@ -35,14 +35,14 @@ library OrderPoolLib {
         mapping(uint256 => uint256) rewardFactorAtBlock;
     }
 
-    ///@notice distribute payment amount to pool (in the case of TWAMM, proceeds from trades against amm)
-    function distributePayment(OrderPool storage self, uint256 amount) internal {
-        if(self.currentSalesRate != 0) {
-            //floating point arithmetic 
-            // TODO: Fix 
-            self.rewardFactor += amount.fromUint().div(self.currentSalesRate.fromUint());
-        }
-    }
+    // ///@notice distribute payment amount to pool (in the case of TWAMM, proceeds from trades against amm)
+    // function distributePayment(OrderPool storage self, uint256 amount) internal {
+    //     if(self.currentSalesRate != 0) {
+    //         //floating point arithmetic 
+    //         // TODO: Fix 
+    //         self.rewardFactor += amount.fromUint().div(self.currentSalesRate.fromUint());
+    //     }
+    // }
 
     ///@notice deposit an order into the order pool. 
     function depositOrder(OrderPool storage self, 
@@ -74,9 +74,9 @@ library OrderPoolLib {
         uint256 blocksRemaining = expiry - block.number;
         unsoldAmount = blocksRemaining * salesRate;
 
-        //calculate amount of other token that was purchased
-        uint256 rewardFactorAtSubmission = self.rewardFactorAtSubmission[orderId];
-        purchasedAmount = (self.rewardFactor - rewardFactorAtSubmission).mul(salesRate.fromUint()).toUint();
+        // //calculate amount of other token that was purchased
+        // uint256 rewardFactorAtSubmission = self.rewardFactorAtSubmission[orderId];
+        // purchasedAmount = (self.rewardFactor - rewardFactorAtSubmission).mul(salesRate.fromUint()).toUint();
 
         //update state
         self.currentSalesRate -= salesRate;
@@ -94,17 +94,17 @@ library OrderPoolLib {
         uint256 orderExpiry = self.orderExpiry[orderId];
         uint256 rewardFactorAtSubmission = self.rewardFactorAtSubmission[orderId];
 
-        //if order has expired, we need to calculate the reward factor at expiry
-        if(block.number > orderExpiry) {
-            uint256 rewardFactorAtExpiry = self.rewardFactorAtBlock[orderExpiry];
-            totalReward = (rewardFactorAtExpiry - rewardFactorAtSubmission).mul(stakedAmount.fromUint()).toUint();
-            //remove stake
-            self.salesRate[orderId] = 0;
-        }
-        //if order has not yet expired, we just adjust the start 
-        else { 
-            totalReward = (self.rewardFactor - rewardFactorAtSubmission).mul(stakedAmount.fromUint()).toUint();
-            self.rewardFactorAtSubmission[orderId] = self.rewardFactor;
-        }
+    //     //if order has expired, we need to calculate the reward factor at expiry
+    //     if(block.number > orderExpiry) {
+    //         uint256 rewardFactorAtExpiry = self.rewardFactorAtBlock[orderExpiry];
+    //         totalReward = (rewardFactorAtExpiry - rewardFactorAtSubmission).mul(stakedAmount.fromUint()).toUint();
+    //         //remove stake
+    //         self.salesRate[orderId] = 0;
+    //     }
+    //     //if order has not yet expired, we just adjust the start 
+    //     else { 
+    //         totalReward = (self.rewardFactor - rewardFactorAtSubmission).mul(stakedAmount.fromUint()).toUint();
+    //         self.rewardFactorAtSubmission[orderId] = self.rewardFactor;
+    //     }
     }
 }

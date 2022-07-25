@@ -218,7 +218,7 @@ library LongTermOrdersLib {
             int256 out0 = 0Start + 0In - end0;
             int256 out1 = 1Start + 1In - end1;
 
-            return (uint256(out0.toInt()), uint256(out1.toInt()), uint256(end0.toInt()), uint256(end1.toInt()));
+            return (uint256(out0.toInt()), uint256(out1.toInt()), uint256(end0.toInt()), uint256(end.toInt()));
 
         }
         
