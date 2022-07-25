@@ -1,82 +1,33 @@
 # Mobius V2 [![Github Actions][gha-badge]][gha] [![Foundry][foundry-badge]][foundry] [![License: MIT][license-badge]][license]
 
-[gha]: https://github.com/paulrberg/foundry-template/actions
-[gha-badge]: https://github.com/paulrberg/foundry-template/actions/workflows/ci.yml/badge.svg
-[foundry]: https://getfoundry.sh/
-[foundry-badge]: https://img.shields.io/badge/Built%20with-Foundry-FFDB1C.svg
-[license]: https://opensource.org/licenses/MIT
-[license-badge]: https://img.shields.io/badge/License-MIT-blue.svg
+A Time Weighted Automated Market Maker (TWAMM) implementation for Uniswap V3 on Celo. Allowing users on Celo to split their large orders over several blocks. 
 
-A Foundry-based template for developing Solidity smart contracts, with sensible defaults.
 
-## What's Inside
+### Useful links:
 
-- [Forge](https://github.com/foundry-rs/foundry/blob/master/forge): compile and test smart contracts
-- [PRBTest](https://github.com/paulrberg/prb-math): modern collection of testing assertions and logging utilities
-- [Forge Std](https://github.com/foundry-rs/forge-std): collection of helpful contracts and cheatcodes for testing
-- [Solhint](https://github.com/protofire/solhint): code linter
-- [Prettier Plugin Solidity](https://github.com/prettier-solidity/prettier-plugin-solidity): code formatter
+https://www.paradigm.xyz/2021/07/twamm/ 
 
-## Getting Started
 
-Click the [`Use this template`](https://github.com/paulrberg/foundry-template/generate) button at the top of the page to create a new repository with this repo as the initial state.
 
-Or, if you prefer to install the template manually:
+## Implementation Notes
 
-```sh
-forge init my-project --template https://github.com/paulrberg/foundry-template
-cd my-project
-yarn install # install solhint and prettier and other goodies
-```
+### Overview 
 
-If this is your first time with Foundry, check out the [installation](https://github.com/foundry-rs/foundry#installation) instructions.
+`TWAMM.sol` directly implements most of the standard AMM functionality (liquidity provision, liquidity removal, and swapping). The logic for execution of long term orders is split across two libraries, `OrderPool.sol` and `LongTermOrders.sol`. 
 
-## Features
+### Order Pool 
 
-This template builds upon the frameworks and libraries mentioned above, so for details about their specific features, please consult their respective documentations.
+The main abstraction for implementing long term orders is the `Order Pool`. The order pool represents a set of long term orders, which sell a given token to the embedded AMM at a constant rate. The token pool also handles the logic for the distribution of sales proceeds to the owners of the long term orders. 
 
-For example, for Foundry, you can refer to the [Foundry Book](https://book.getfoundry.sh/). You might be in particular interested in reading the [Writing Tests](https://book.getfoundry.sh/forge/writing-tests.html) guide.
+The distribution of rewards is done through a modified version of algorithm from [Scalable Reward Distribution on the Ethereum Blockchain](https://uploads-ssl.webflow.com/5ad71ffeb79acc67c8bcdaba/5ad8d1193a40977462982470_scalable-reward-distribution-paper.pdf). Since order expiries are decopuled from reward distribution in the TWAMM model, the modified algorithm needs to keep track of additional parameters to compute rewards correctly. 
 
-### Sensible Defaults
+### Long term orders
 
-This template comes with sensible default configurations in the following files:
+In addition to the order pools, the `LongTermOrders` struct keep the state of the virtual order execution. Most importantly, it keep track of the last block where virtual orders were executed. Before every interaction with the embedded AMM, the state of virtual order execution is brought forward to the present block. We can do this efficiently because only certain blocks are eligible for virtual order expiry. Thus, we can advance the state by a full block interval in a single computation. Crucially, advancing the state of long term order execution is linear only in the number of block intervals since the last interaction with TWAMM, not linear in the number of orders. 
 
-```text
-├── .commitlintrc.yml
-├── .editorconfig
-├── .gitignore
-├── .prettierignore
-├── .prettierrc.yml
-├── .solhintignore
-├── .solhint.json
-├── .yarnrc.yml
-├── foundry.toml
-└── remappings.txt
-```
+### Fixed Point Math
 
-### GitHub Actions
-
-This template comes with GitHub Actions pre-configured. Your contracts will be linted and tested on every push and pull
-request made to the `main` branch.
-
-You can edit the CI script in [.github/workflows/ci.yml](./.github/workflows/ci.yml).
-
-### Conventional Commits
-
-This template enforces the [Conventional Commits](https://www.conventionalcommits.org/) standard for git commit messages.
-This is a lightweight convention that creates an explicit commit history, which makes it easier to write automated
-tools on top of.
-
-### Git Hooks
-
-This template uses [Husky](https://github.com/typicode/husky) to run automated checks on commit messages, and [Lint Staged](https://github.com/okonet/lint-staged) to automatically format the code with Prettier when making a git commit.
-
-## Writing Tests
-
-To write a new test contract, you start by importing [PRBTest](https://github.com/paulrberg/prb-test) and inherit from it in your test contract. PRBTest comes with a
-pre-instantiated [cheatcodes](https://book.getfoundry.sh/cheatcodes/) environment accessible via the `vm` property. You can also use [console.log](https://book.getfoundry.sh/faq?highlight=console.log#how-do-i-use-consolelog), whose logs you can see in the terminal output by adding the `-vvvv` flag.
-
-This template comes with an example test contract [Foo.t.sol](./test/Foo.t.sol).
+This implementation uses the [PRBMath Library](https://github.com/hifi-finance/prb-math) for fixed point arithmetic, in order to implement the closed form solution to settling long term trades. Efforts were made to make the computation numerically stable, but there's remaining work to be done here in order to ensure that the computation is correct for the full set of expected inputs. 
 
 ## Usage
 
