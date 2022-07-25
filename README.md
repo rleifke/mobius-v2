@@ -1,4 +1,4 @@
-# Foundry Template [![Github Actions][gha-badge]][gha] [![Foundry][foundry-badge]][foundry] [![License: MIT][license-badge]][license]
+# Mobius V2 [![Github Actions][gha-badge]][gha] [![Foundry][foundry-badge]][foundry] [![License: MIT][license-badge]][license]
 
 [gha]: https://github.com/paulrberg/foundry-template/actions
 [gha-badge]: https://github.com/paulrberg/foundry-template/actions/workflows/ci.yml/badge.svg
