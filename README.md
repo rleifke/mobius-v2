@@ -1,4 +1,4 @@
-# Mobius V2 [![Github Actions][gha-badge]][gha] [![Foundry][foundry-badge]][foundry] [![License: MIT][license-badge]][license]
+# Mobius V2
 
 A Time Weighted Automated Market Maker (TWAMM) implementation for Uniswap V3 on Celo. Allowing users on Celo to split their large orders over several blocks. 
 
